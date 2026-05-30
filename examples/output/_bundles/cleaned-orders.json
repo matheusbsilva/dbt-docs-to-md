@@ -21,6 +21,8 @@
   ],
   "sql": "select id as order_id, customer_id, amount from \"warehouse\".\"raw\".\"orders\"",
   "sql_source": "compiled",
+  "semantic_models": [],
+  "metrics": [],
   "target_md": "cleaned-orders.md",
   "placeholders": {
     "lineage": {

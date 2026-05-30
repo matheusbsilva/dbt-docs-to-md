@@ -68,6 +68,23 @@ def render_model_md(model: ParsedModel, project, schema_version: str | None = No
     lines.extend(_columns_table(model.columns))
     lines.append("")
 
+    # Semantic models (entities / dimensions / measures)
+    if model.semantic_models:
+        lines.append("## Semantic Model")
+        for sm in model.semantic_models:
+            lines.extend(_semantic_model_section(sm))
+
+    # Metrics built on this model
+    if model.metrics:
+        lines.append("## Metrics You Can Measure")
+        lines.append(
+            "**Available metrics:** "
+            + ", ".join(m.display_label for m in model.metrics)
+        )
+        lines.append("")
+        lines.extend(_metrics_table(model.metrics))
+        lines.append("")
+
     # Model-level tests
     if model.model_tests:
         lines.append("## Tests Applied (model level)")
@@ -82,6 +99,67 @@ def render_model_md(model: ParsedModel, project, schema_version: str | None = No
     lines.append("")
 
     return "\n".join(lines)
+
+
+def _semantic_model_section(sm) -> list[str]:
+    lines: list[str] = [f"### {sm.display_label}"]
+    if sm.description:
+        lines.append(sm.description)
+    if sm.primary_entity:
+        lines.append(f"_Primary entity:_ `{sm.primary_entity}`")
+    lines.append("")
+
+    if sm.entities:
+        lines.append("**Entities** (how this data joins to other models)")
+        lines.append("")
+        lines.append("| Entity | Type | Description |")
+        lines.append("| --- | --- | --- |")
+        for e in sm.entities:
+            lines.append(
+                f"| {_cell(e.display_label)} | {_cell(e.type or '—')} | {_cell(e.description or '—')} |"
+            )
+        lines.append("")
+
+    if sm.dimensions:
+        lines.append("**Dimensions** (ways to slice the metrics)")
+        lines.append("")
+        lines.append("| Dimension | Type | Description |")
+        lines.append("| --- | --- | --- |")
+        for d in sm.dimensions:
+            lines.append(
+                f"| {_cell(d.display_label)} | {_cell(d.type or '—')} | {_cell(d.description or '—')} |"
+            )
+        lines.append("")
+
+    if sm.measures:
+        lines.append("**Measures** (the quantities that can be aggregated)")
+        lines.append("")
+        lines.append("| Measure | Aggregation | Description |")
+        lines.append("| --- | --- | --- |")
+        for m in sm.measures:
+            lines.append(
+                f"| {_cell(m.display_label)} | {_cell(m.agg or '—')} | {_cell(m.description or '—')} |"
+            )
+        lines.append("")
+
+    return lines
+
+
+def _metrics_table(metrics) -> list[str]:
+    rows = [
+        "| Metric | Type | How it's calculated | Description |",
+        "| --- | --- | --- | --- |",
+    ]
+    for m in metrics:
+        rows.append(
+            "| {label} | {type} | {calc} | {desc} |".format(
+                label=_cell(m.display_label),
+                type=_cell(m.type or "—"),
+                calc=_cell(m.type_params_summary or "—"),
+                desc=_cell(m.description or "—"),
+            )
+        )
+    return rows
 
 
 def _meta_table(meta: dict[str, object]) -> list[str]:

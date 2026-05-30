@@ -19,6 +19,7 @@ from .domain import (
     ParsedNodeRef,
     ParsedProject,
 )
+from .semantic_collector import collect_semantic_layer
 from .tests_collector import collect_tests
 
 # Resource types we treat as documentable models (one Markdown file each).
@@ -35,6 +36,8 @@ def build_project(manifest_obj: Any, catalog_obj: Any | None = None) -> ParsedPr
 
     # Tests are separate nodes; collect them once and attach to models/columns.
     tests_by_model = collect_tests(nodes)
+    # Semantic layer (semantic models + metrics) embedded in the manifest.
+    semantic = collect_semantic_layer(manifest_obj)
 
     nodes_by_id: dict[str, ParsedNodeRef] = {}
     models: list[ParsedModel] = []
@@ -45,7 +48,9 @@ def build_project(manifest_obj: Any, catalog_obj: Any | None = None) -> ParsedPr
             nodes_by_id[unique_id] = _node_ref(unique_id, node, rtype)
         if rtype in MODEL_RESOURCE_TYPES:
             models.append(
-                _build_model(unique_id, node, rtype, catalog_nodes, tests_by_model)
+                _build_model(
+                    unique_id, node, rtype, catalog_nodes, tests_by_model, semantic
+                )
             )
 
     # Sources live in their own collection in the manifest.
@@ -56,6 +61,8 @@ def build_project(manifest_obj: Any, catalog_obj: Any | None = None) -> ParsedPr
         dbt_schema_version=_schema_version(manifest_obj),
         models=sorted(models, key=lambda m: m.display_label.lower()),
         nodes_by_id=nodes_by_id,
+        semantic_models=semantic.semantic_models,
+        metrics=semantic.metrics,
     )
 
 
@@ -65,6 +72,7 @@ def _build_model(
     rtype: str,
     catalog_nodes: dict[str, Any],
     tests_by_model: dict[str, dict[str | None, list[ColumnTest]]],
+    semantic: Any,
 ) -> ParsedModel:
     meta = _merged_meta(node)
     catalog_cols = _as_dict(getattr(catalog_nodes.get(unique_id), "columns", {}))
@@ -82,6 +90,8 @@ def _build_model(
             )
         )
 
+    sem = semantic.by_model_id.get(unique_id, {})
+
     return ParsedModel(
         unique_id=unique_id,
         name=getattr(node, "name", unique_id),
@@ -97,6 +107,8 @@ def _build_model(
         parents=_depends_on_nodes(node),
         raw_code=getattr(node, "raw_code", None),
         compiled_code=getattr(node, "compiled_code", None),
+        semantic_models=sem.get("semantic_models", []),
+        metrics=sem.get("metrics", []),
     )
 
 

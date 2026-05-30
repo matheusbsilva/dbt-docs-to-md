@@ -17,6 +17,12 @@ def render_index(project: ParsedProject, filenames: dict[str, str]) -> str:
         "Business-readable documentation for every dbt model in the project."
     )
     lines.append("")
+    if project.metrics:
+        lines.append(
+            f"See the [Metrics Glossary](metrics.md) for the {len(project.metrics)} "
+            "metric(s) available in the semantic layer."
+        )
+        lines.append("")
     lines.append("| Model | Description | Documentation |")
     lines.append("| --- | --- | --- |")
 

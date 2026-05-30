@@ -21,6 +21,8 @@
   ],
   "sql": "select id as customer_id, email from \"warehouse\".\"raw\".\"customers\"",
   "sql_source": "compiled",
+  "semantic_models": [],
+  "metrics": [],
   "target_md": "cleaned-customers.md",
   "placeholders": {
     "lineage": {

@@ -72,6 +72,65 @@ class ParsedNodeRef(BaseModel):
         return self.label or self.name
 
 
+class _Labelled(BaseModel):
+    """Mixin for semantic objects that carry their own ``label`` field."""
+
+    name: str
+    label: str | None = None
+
+    @property
+    def display_label(self) -> str:
+        return self.label or self.name
+
+
+class SemanticEntity(_Labelled):
+    """An entity (join key) of a semantic model, e.g. a primary/foreign key."""
+
+    type: str | None = None  # primary, foreign, unique, natural
+    description: str | None = None
+    expr: str | None = None
+
+
+class SemanticDimension(_Labelled):
+    """A dimension — how a measure can be sliced (categorical or time)."""
+
+    type: str | None = None  # categorical, time
+    description: str | None = None
+    is_partition: bool = False
+    expr: str | None = None
+
+
+class SemanticMeasure(_Labelled):
+    """A measure — an aggregatable quantity defined on a semantic model."""
+
+    agg: str | None = None  # sum, count, count_distinct, average, ...
+    description: str | None = None
+    expr: str | None = None
+    agg_time_dimension: str | None = None
+    create_metric: bool = False
+
+
+class SemanticModel(_Labelled):
+    unique_id: str
+    description: str | None = None
+    model_id: str | None = None  # unique_id of the dbt model it is built on
+    primary_entity: str | None = None
+    entities: list[SemanticEntity] = Field(default_factory=list)
+    dimensions: list[SemanticDimension] = Field(default_factory=list)
+    measures: list[SemanticMeasure] = Field(default_factory=list)
+
+
+class Metric(_Labelled):
+    unique_id: str
+    description: str | None = None
+    type: str | None = None  # simple, ratio, cumulative, derived, conversion
+    type_params_summary: str | None = None
+    filter: str | None = None
+    meta: dict[str, object] = Field(default_factory=dict)
+    semantic_model_ids: list[str] = Field(default_factory=list)
+    model_ids: list[str] = Field(default_factory=list)
+
+
 class ParsedModel(BaseModel):
     unique_id: str
     name: str
@@ -87,6 +146,8 @@ class ParsedModel(BaseModel):
     parents: list[str] = Field(default_factory=list)  # direct upstream unique_ids
     raw_code: str | None = None
     compiled_code: str | None = None
+    semantic_models: list[SemanticModel] = Field(default_factory=list)
+    metrics: list[Metric] = Field(default_factory=list)
 
     @property
     def label(self) -> str | None:
@@ -108,6 +169,9 @@ class ParsedProject(BaseModel):
     models: list[ParsedModel] = Field(default_factory=list)
     # All upstream-referenceable nodes keyed by unique_id (models + sources + seeds).
     nodes_by_id: dict[str, ParsedNodeRef] = Field(default_factory=dict)
+    # Project-wide semantic layer (for the metrics glossary).
+    semantic_models: list[SemanticModel] = Field(default_factory=list)
+    metrics: list[Metric] = Field(default_factory=list)
 
     def model_by_id(self) -> dict[str, ParsedModel]:
         return {m.unique_id: m for m in self.models}

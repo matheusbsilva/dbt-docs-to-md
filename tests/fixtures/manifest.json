@@ -451,7 +451,68 @@
   "macros": {},
   "docs": {},
   "exposures": {},
-  "metrics": {},
+  "metrics": {
+    "metric.shop.total_lifetime_value": {
+      "name": "total_lifetime_value",
+      "resource_type": "metric",
+      "package_name": "shop",
+      "path": "models/metrics.yml",
+      "original_file_path": "models/metrics.yml",
+      "unique_id": "metric.shop.total_lifetime_value",
+      "fqn": [
+        "shop",
+        "total_lifetime_value"
+      ],
+      "description": "The total amount spent across all customers.",
+      "label": "Total Lifetime Value",
+      "type": "simple",
+      "type_params": {
+        "measure": {
+          "name": "lifetime_value"
+        }
+      },
+      "filter": null,
+      "metadata": null,
+      "meta": {
+        "unit": "USD"
+      },
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "semantic_model.shop.customers"
+        ]
+      }
+    },
+    "metric.shop.customer_count": {
+      "name": "customer_count",
+      "resource_type": "metric",
+      "package_name": "shop",
+      "path": "models/metrics.yml",
+      "original_file_path": "models/metrics.yml",
+      "unique_id": "metric.shop.customer_count",
+      "fqn": [
+        "shop",
+        "customer_count"
+      ],
+      "description": "The number of distinct customers.",
+      "label": "Customer Count",
+      "type": "simple",
+      "type_params": {
+        "measure": {
+          "name": "customer_count"
+        }
+      },
+      "filter": null,
+      "metadata": null,
+      "meta": {},
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "semantic_model.shop.customers"
+        ]
+      }
+    }
+  },
   "groups": {},
   "selectors": {},
   "disabled": {},
@@ -484,6 +545,76 @@
   },
   "group_map": {},
   "saved_queries": {},
-  "semantic_models": {},
+  "semantic_models": {
+    "semantic_model.shop.customers": {
+      "name": "customers",
+      "resource_type": "semantic_model",
+      "package_name": "shop",
+      "path": "models/semantic_models.yml",
+      "original_file_path": "models/semantic_models.yml",
+      "unique_id": "semantic_model.shop.customers",
+      "fqn": [
+        "shop",
+        "customers"
+      ],
+      "model": "ref('dim_customers')",
+      "node_relation": {
+        "alias": "dim_customers",
+        "schema_name": "analytics",
+        "database": "warehouse",
+        "relation_name": "\"warehouse\".\"analytics\".\"dim_customers\""
+      },
+      "description": "Customer-level semantic model for self-serve analytics.",
+      "label": "Customers",
+      "primary_entity": "customer",
+      "entities": [
+        {
+          "name": "customer",
+          "type": "primary",
+          "description": "The customer.",
+          "label": "Customer"
+        }
+      ],
+      "dimensions": [
+        {
+          "name": "status",
+          "type": "categorical",
+          "description": "VIP or standard tier.",
+          "label": "Customer Status"
+        },
+        {
+          "name": "signup_date",
+          "type": "time",
+          "description": "When the customer signed up.",
+          "label": "Signup Date",
+          "type_params": {
+            "time_granularity": "day"
+          }
+        }
+      ],
+      "measures": [
+        {
+          "name": "lifetime_value",
+          "agg": "sum",
+          "description": "Total spend per customer.",
+          "label": "Lifetime Value",
+          "expr": "lifetime_value"
+        },
+        {
+          "name": "customer_count",
+          "agg": "count_distinct",
+          "description": "Number of distinct customers.",
+          "label": "Customer Count",
+          "expr": "customer_id"
+        }
+      ],
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "model.shop.dim_customers"
+        ]
+      }
+    }
+  },
   "unit_tests": {}
 }
