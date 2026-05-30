@@ -2,6 +2,8 @@
 
 Business-readable documentation for every dbt model in the project.
 
+See the [Metrics Glossary](metrics.md) for the 2 metric(s) available in the semantic layer.
+
 | Model | Description | Documentation |
 | --- | --- | --- |
 | Cleaned Customers (`stg_customers`) | Cleaned customer records from the raw ingestion layer. | [View](cleaned-customers.md) |

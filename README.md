@@ -91,7 +91,24 @@ See [`examples/output`](./examples/output) for fully generated sample docs
   list of direct sources)
 - What This Model Does — *Claude-authored*, from the SQL
 - Columns — name, type, description, tests, meta
+- Semantic Model — entities, dimensions, measures (when defined)
+- Metrics You Can Measure — metrics built on the model (when defined)
 - Tests Applied (model level)
+
+## Semantic layer support
+
+When a project uses the **dbt Semantic Layer**, the docs also describe its
+semantic models and metrics in business terms:
+
+- each model's file gains **Semantic Model** (entities / dimensions / measures)
+  and **Metrics You Can Measure** sections, and
+- a top-level **`metrics.md`** glossary lists every metric (label, type, how it's
+  calculated, description, and the model it's built on), linked from `index.md`.
+
+This information is read directly from `manifest.json` v12 (which embeds
+`semantic_models` and `metrics`). The standalone, dbt Cloud–only
+`semantic_manifest.json` artifact is **not** required and is not supported by
+`dbt-artifacts-parser` — everything needed is already in `manifest.json`.
 
 ## Project layout
 
@@ -101,9 +118,10 @@ src/dbt_docs_to_md/
 ├── domain.py          # version-agnostic Pydantic domain models
 ├── adapter.py         # dbt-artifacts-parser objects -> domain models
 ├── tests_collector.py # attach dbt test nodes to models/columns
+├── semantic_collector.py # collect semantic models + metrics from the manifest
 ├── lineage.py         # transitive upstream resolution + labels
 ├── bundle.py          # per-model context bundle for Claude
-└── markdown/          # renderer, index, templates (placeholder markers)
+└── markdown/          # renderer, index, metrics glossary, templates
 tests/                 # pytest suite + synthetic v12 fixtures
 examples/output/       # sample generated docs
 SKILL.md               # Claude Skill manifest + workflow

@@ -20,6 +20,7 @@ from .adapter import build_project
 from .bundle import build_bundle
 from .domain import ParsedProject
 from .markdown.index import render_index
+from .markdown.metrics import render_metrics_glossary
 from .markdown.renderer import render_model_md, slugify_filename
 
 
@@ -94,6 +95,11 @@ def write_outputs(project: ParsedProject, output: Path, write_bundles: bool = Tr
         )
 
     (output / "index.md").write_text(render_index(project, filenames), encoding="utf-8")
+
+    if project.metrics:
+        (output / "metrics.md").write_text(
+            render_metrics_glossary(project, filenames), encoding="utf-8"
+        )
 
     if write_bundles:
         bundle_dir = output / "_bundles"
