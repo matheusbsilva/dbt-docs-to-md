@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dbt-docs-to-md"
+version = "0.1.0"
+description = "Turn dbt documentation artifacts into a Markdown knowledge base for business stakeholders."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dbt-artifacts-parser>=0.13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+]
+
+[project.scripts]
+dbt-docs-to-md = "dbt_docs_to_md.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

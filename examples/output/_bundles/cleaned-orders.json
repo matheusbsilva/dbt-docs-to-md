@@ -1,0 +1,35 @@
+{
+  "unique_id": "model.shop.stg_orders",
+  "name": "stg_orders",
+  "label": "Cleaned Orders",
+  "description": "Cleaned order records.",
+  "parents": [
+    {
+      "name": "orders",
+      "label": "Source Orders",
+      "display_label": "Source Orders",
+      "resource_type": "source"
+    }
+  ],
+  "upstream": [
+    {
+      "name": "orders",
+      "label": "Source Orders",
+      "display_label": "Source Orders",
+      "resource_type": "source"
+    }
+  ],
+  "sql": "select id as order_id, customer_id, amount from \"warehouse\".\"raw\".\"orders\"",
+  "sql_source": "compiled",
+  "target_md": "cleaned-orders.md",
+  "placeholders": {
+    "lineage": {
+      "open": "<!-- LINEAGE_SUMMARY -->",
+      "close": "<!-- /LINEAGE_SUMMARY -->"
+    },
+    "transformations": {
+      "open": "<!-- TRANSFORMATION_SUMMARY -->",
+      "close": "<!-- /TRANSFORMATION_SUMMARY -->"
+    }
+  }
+}

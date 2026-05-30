@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.8.0",
+    "generated_at": "2024-01-01T00:00:00Z",
+    "invocation_id": "00000000-0000-0000-0000-000000000000"
+  },
+  "nodes": {
+    "model.shop.dim_customers": {
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "analytics",
+        "name": "dim_customers"
+      },
+      "columns": {
+        "customer_id": {
+          "type": "INTEGER",
+          "index": 1,
+          "name": "customer_id"
+        },
+        "email": {
+          "type": "VARCHAR",
+          "index": 2,
+          "name": "email"
+        },
+        "lifetime_value": {
+          "type": "NUMERIC",
+          "index": 3,
+          "name": "lifetime_value"
+        },
+        "status": {
+          "type": "VARCHAR",
+          "index": 4,
+          "name": "status"
+        }
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}

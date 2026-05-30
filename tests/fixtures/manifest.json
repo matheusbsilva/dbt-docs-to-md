@@ -1,0 +1,489 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.8.0",
+    "generated_at": "2024-01-01T00:00:00Z",
+    "invocation_id": "00000000-0000-0000-0000-000000000000",
+    "project_name": "shop"
+  },
+  "nodes": {
+    "model.shop.stg_customers": {
+      "database": "warehouse",
+      "schema": "analytics",
+      "name": "stg_customers",
+      "resource_type": "model",
+      "package_name": "shop",
+      "path": "stg_customers.sql",
+      "original_file_path": "models/stg_customers.sql",
+      "unique_id": "model.shop.stg_customers",
+      "fqn": [
+        "shop",
+        "stg_customers"
+      ],
+      "alias": "stg_customers",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "config": {
+        "meta": {
+          "label": "Cleaned Customers"
+        },
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "Cleaned customer records from the raw ingestion layer.",
+      "columns": {
+        "customer_id": {
+          "name": "customer_id",
+          "description": "Surrogate key for a customer.",
+          "meta": {},
+          "tags": [],
+          "data_type": "integer"
+        },
+        "email": {
+          "name": "email",
+          "description": "Customer email address.",
+          "meta": {
+            "pii": true
+          },
+          "tags": [],
+          "data_type": "varchar"
+        }
+      },
+      "meta": {
+        "label": "Cleaned Customers"
+      },
+      "relation_name": "\"warehouse\".\"analytics\".\"stg_customers\"",
+      "raw_code": "select id as customer_id, email from {{ source('raw','customers') }}",
+      "compiled_code": "select id as customer_id, email from \"warehouse\".\"raw\".\"customers\"",
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "source.shop.raw.customers"
+        ]
+      }
+    },
+    "model.shop.stg_orders": {
+      "database": "warehouse",
+      "schema": "analytics",
+      "name": "stg_orders",
+      "resource_type": "model",
+      "package_name": "shop",
+      "path": "stg_orders.sql",
+      "original_file_path": "models/stg_orders.sql",
+      "unique_id": "model.shop.stg_orders",
+      "fqn": [
+        "shop",
+        "stg_orders"
+      ],
+      "alias": "stg_orders",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "config": {
+        "meta": {
+          "label": "Cleaned Orders"
+        },
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "Cleaned order records.",
+      "columns": {
+        "order_id": {
+          "name": "order_id",
+          "description": "Surrogate key for an order.",
+          "meta": {},
+          "tags": [],
+          "data_type": "integer"
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "description": "Customer who placed the order.",
+          "meta": {},
+          "tags": [],
+          "data_type": "integer"
+        },
+        "amount": {
+          "name": "amount",
+          "description": "Order amount in USD.",
+          "meta": {},
+          "tags": [],
+          "data_type": "numeric"
+        }
+      },
+      "meta": {
+        "label": "Cleaned Orders"
+      },
+      "relation_name": "\"warehouse\".\"analytics\".\"stg_orders\"",
+      "raw_code": "select id as order_id, customer_id, amount from {{ source('raw','orders') }}",
+      "compiled_code": "select id as order_id, customer_id, amount from \"warehouse\".\"raw\".\"orders\"",
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "source.shop.raw.orders"
+        ]
+      }
+    },
+    "model.shop.dim_customers": {
+      "database": "warehouse",
+      "schema": "analytics",
+      "name": "dim_customers",
+      "resource_type": "model",
+      "package_name": "shop",
+      "path": "dim_customers.sql",
+      "original_file_path": "models/dim_customers.sql",
+      "unique_id": "model.shop.dim_customers",
+      "fqn": [
+        "shop",
+        "dim_customers"
+      ],
+      "alias": "dim_customers",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "config": {
+        "meta": {
+          "label": "Customers",
+          "owner": "analytics-team",
+          "domain": "marketing"
+        },
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "One row per customer enriched with lifetime order totals.",
+      "columns": {
+        "customer_id": {
+          "name": "customer_id",
+          "description": "Unique identifier of the customer.",
+          "meta": {},
+          "tags": [],
+          "data_type": "integer"
+        },
+        "email": {
+          "name": "email",
+          "description": "Customer email address.",
+          "meta": {
+            "pii": true
+          },
+          "tags": [],
+          "data_type": "varchar"
+        },
+        "lifetime_value": {
+          "name": "lifetime_value",
+          "description": "Total amount the customer has spent.",
+          "meta": {},
+          "tags": [],
+          "data_type": "numeric"
+        },
+        "status": {
+          "name": "status",
+          "description": "Customer status.",
+          "meta": {},
+          "tags": [],
+          "data_type": "varchar"
+        }
+      },
+      "meta": {
+        "label": "Customers",
+        "owner": "analytics-team",
+        "domain": "marketing"
+      },
+      "relation_name": "\"warehouse\".\"analytics\".\"dim_customers\"",
+      "raw_code": "select c.customer_id, c.email, sum(o.amount) as lifetime_value, case when sum(o.amount) > 1000 then 'vip' else 'standard' end as status from {{ ref('stg_customers') }} c left join {{ ref('stg_orders') }} o on c.customer_id = o.customer_id group by 1, 2",
+      "compiled_code": "select c.customer_id, c.email, sum(o.amount) as lifetime_value, case when sum(o.amount) > 1000 then 'vip' else 'standard' end as status from \"warehouse\".\"analytics\".\"stg_customers\" c left join \"warehouse\".\"analytics\".\"stg_orders\" o on c.customer_id = o.customer_id group by 1, 2",
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "model.shop.stg_customers",
+          "model.shop.stg_orders"
+        ]
+      }
+    },
+    "test.shop.not_null_dim_customers_customer_id.a1": {
+      "database": "warehouse",
+      "schema": "analytics_dbt_test__audit",
+      "name": "not_null_dim_customers_customer_id",
+      "resource_type": "test",
+      "package_name": "shop",
+      "path": "not_null_dim_customers_customer_id.sql",
+      "original_file_path": "models/schema.yml",
+      "unique_id": "test.shop.not_null_dim_customers_customer_id.a1",
+      "fqn": [
+        "shop",
+        "not_null_dim_customers_customer_id"
+      ],
+      "alias": "not_null_dim_customers_customer_id",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "model.shop.dim_customers"
+        ]
+      },
+      "attached_node": "model.shop.dim_customers",
+      "column_name": "customer_id",
+      "test_metadata": {
+        "name": "not_null",
+        "kwargs": {
+          "column_name": "customer_id"
+        }
+      }
+    },
+    "test.shop.unique_dim_customers_customer_id.b2": {
+      "database": "warehouse",
+      "schema": "analytics_dbt_test__audit",
+      "name": "unique_dim_customers_customer_id",
+      "resource_type": "test",
+      "package_name": "shop",
+      "path": "unique_dim_customers_customer_id.sql",
+      "original_file_path": "models/schema.yml",
+      "unique_id": "test.shop.unique_dim_customers_customer_id.b2",
+      "fqn": [
+        "shop",
+        "unique_dim_customers_customer_id"
+      ],
+      "alias": "unique_dim_customers_customer_id",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "model.shop.dim_customers"
+        ]
+      },
+      "attached_node": "model.shop.dim_customers",
+      "column_name": "customer_id",
+      "test_metadata": {
+        "name": "unique",
+        "kwargs": {
+          "column_name": "customer_id"
+        }
+      }
+    },
+    "test.shop.accepted_values_dim_customers_status.c3": {
+      "database": "warehouse",
+      "schema": "analytics_dbt_test__audit",
+      "name": "accepted_values_dim_customers_status",
+      "resource_type": "test",
+      "package_name": "shop",
+      "path": "accepted_values_dim_customers_status.sql",
+      "original_file_path": "models/schema.yml",
+      "unique_id": "test.shop.accepted_values_dim_customers_status.c3",
+      "fqn": [
+        "shop",
+        "accepted_values_dim_customers_status"
+      ],
+      "alias": "accepted_values_dim_customers_status",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "model.shop.dim_customers"
+        ]
+      },
+      "attached_node": "model.shop.dim_customers",
+      "column_name": "status",
+      "test_metadata": {
+        "name": "accepted_values",
+        "kwargs": {
+          "values": [
+            "vip",
+            "standard"
+          ],
+          "column_name": "status"
+        }
+      }
+    },
+    "test.shop.relationships_stg_orders_customer_id.d4": {
+      "database": "warehouse",
+      "schema": "analytics_dbt_test__audit",
+      "name": "relationships_stg_orders_customer_id",
+      "resource_type": "test",
+      "package_name": "shop",
+      "path": "relationships_stg_orders_customer_id.sql",
+      "original_file_path": "models/schema.yml",
+      "unique_id": "test.shop.relationships_stg_orders_customer_id.d4",
+      "fqn": [
+        "shop",
+        "relationships_stg_orders_customer_id"
+      ],
+      "alias": "relationships_stg_orders_customer_id",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "model.shop.stg_customers",
+          "model.shop.stg_orders"
+        ]
+      },
+      "attached_node": "model.shop.stg_orders",
+      "column_name": "customer_id",
+      "test_metadata": {
+        "name": "relationships",
+        "kwargs": {
+          "to": "ref('stg_customers')",
+          "field": "customer_id",
+          "column_name": "customer_id"
+        }
+      }
+    },
+    "test.shop.assert_positive_amount.e5": {
+      "database": "warehouse",
+      "schema": "analytics_dbt_test__audit",
+      "name": "assert_positive_amount",
+      "resource_type": "test",
+      "package_name": "shop",
+      "path": "assert_positive_amount.sql",
+      "original_file_path": "models/schema.yml",
+      "unique_id": "test.shop.assert_positive_amount.e5",
+      "fqn": [
+        "shop",
+        "assert_positive_amount"
+      ],
+      "alias": "assert_positive_amount",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "depends_on": {
+        "macros": [],
+        "nodes": [
+          "model.shop.stg_orders"
+        ]
+      },
+      "attached_node": "model.shop.stg_orders"
+    }
+  },
+  "sources": {
+    "source.shop.raw.customers": {
+      "database": "warehouse",
+      "schema": "raw",
+      "name": "customers",
+      "resource_type": "source",
+      "package_name": "shop",
+      "path": "models/sources.yml",
+      "original_file_path": "models/sources.yml",
+      "unique_id": "source.shop.raw.customers",
+      "fqn": [
+        "shop",
+        "raw",
+        "customers"
+      ],
+      "source_name": "raw",
+      "source_description": "Raw ingestion layer",
+      "loader": "fivetran",
+      "identifier": "customers",
+      "description": "Raw customers feed.",
+      "columns": {},
+      "meta": {
+        "label": "Source Customers"
+      },
+      "relation_name": "\"warehouse\".\"raw\".\"customers\""
+    },
+    "source.shop.raw.orders": {
+      "database": "warehouse",
+      "schema": "raw",
+      "name": "orders",
+      "resource_type": "source",
+      "package_name": "shop",
+      "path": "models/sources.yml",
+      "original_file_path": "models/sources.yml",
+      "unique_id": "source.shop.raw.orders",
+      "fqn": [
+        "shop",
+        "raw",
+        "orders"
+      ],
+      "source_name": "raw",
+      "source_description": "Raw ingestion layer",
+      "loader": "fivetran",
+      "identifier": "orders",
+      "description": "Raw orders feed.",
+      "columns": {},
+      "meta": {
+        "label": "Source Orders"
+      },
+      "relation_name": "\"warehouse\".\"raw\".\"orders\""
+    }
+  },
+  "macros": {},
+  "docs": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {
+    "model.shop.stg_customers": [
+      "source.shop.raw.customers"
+    ],
+    "model.shop.stg_orders": [
+      "source.shop.raw.orders"
+    ],
+    "model.shop.dim_customers": [
+      "model.shop.stg_customers",
+      "model.shop.stg_orders"
+    ]
+  },
+  "child_map": {
+    "source.shop.raw.customers": [
+      "model.shop.stg_customers"
+    ],
+    "source.shop.raw.orders": [
+      "model.shop.stg_orders"
+    ],
+    "model.shop.stg_customers": [
+      "model.shop.dim_customers"
+    ],
+    "model.shop.stg_orders": [
+      "model.shop.dim_customers"
+    ],
+    "model.shop.dim_customers": []
+  },
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}
