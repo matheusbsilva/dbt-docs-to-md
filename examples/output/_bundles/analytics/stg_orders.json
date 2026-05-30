@@ -23,7 +23,7 @@
   "sql_source": "compiled",
   "semantic_models": [],
   "metrics": [],
-  "target_md": "cleaned-orders.md",
+  "target_md": "analytics/stg_orders.md",
   "placeholders": {
     "lineage": {
       "open": "<!-- LINEAGE_SUMMARY -->",

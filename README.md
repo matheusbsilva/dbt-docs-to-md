@@ -68,10 +68,12 @@ python -m dbt_docs_to_md \
 
 This writes to `./catalog_md`:
 
-- `index.md` — every model with its description and a link,
-- `<model>.md` — one file per model with placeholder regions for the two prose
-  sections,
-- `_bundles/<model>.json` — compact context bundles used by the LLM phase.
+- `index.md` — every model with its description and a link, grouped by layer,
+- `<layer>/<model>.md` — one file per model, organized into per-layer folders
+  (the model's warehouse schema) and named after the technical model, with
+  placeholder regions for the two prose sections,
+- `_bundles/<layer>/<model>.json` — compact context bundles (mirroring the model
+  tree) used by the LLM phase.
 
 `--catalog` is optional (it enriches column data types). Add `--no-bundles` to
 skip the LLM context bundles.
@@ -80,7 +82,7 @@ Then run the skill (or follow [`SKILL.md`](./SKILL.md) manually) to fill in the
 **Upstream Lineage** and **What This Model Does** sections.
 
 See [`examples/output`](./examples/output) for fully generated sample docs
-(including filled-in summaries in `customers.md`).
+(including filled-in summaries in `analytics/dim_customers.md`).
 
 ## What a model file contains
 

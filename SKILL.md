@@ -19,13 +19,16 @@ parsing; you (Claude) write two prose sections per model.
 1. The script `dbt_docs_to_md` parses `manifest.json` (+ optional `catalog.json`)
    using the `dbt-artifacts-parser` library, which auto-detects the dbt schema
    version (v1–v12). It writes, into the output directory:
-   - one `<model>.md` per model with all deterministic sections plus two
-     placeholder regions,
-   - `index.md` listing every model,
+   - one `<layer>/<model>.md` per model with all deterministic sections plus two
+     placeholder regions. Models are organized by **layer** (their warehouse
+     schema, e.g. `analytics/`) and the file is named after the technical model
+     (e.g. `analytics/stg_customers.md`).
+   - `index.md` listing every model, grouped by layer,
    - `metrics.md` — a business glossary of every metric (only when the project
      uses the dbt Semantic Layer),
-   - `_bundles/<model>.json` — a compact context bundle per model that gives you
-     exactly what you need to write the prose.
+   - `_bundles/<layer>/<model>.json` — a compact context bundle per model
+     (mirroring the model tree) that gives you exactly what you need to write the
+     prose.
 
    When a model has a semantic model / metrics defined on it, the deterministic
    sections **Semantic Model** (entities, dimensions, measures) and **Metrics You
@@ -54,7 +57,8 @@ parsing; you (Claude) write two prose sections per model.
    user (likely an unsupported dbt version or a non-`docs generate` file) — do
    not guess or hand-edit the artifacts.
 
-3. **Write the summaries.** For each file in `<output_dir>/_bundles/`:
+3. **Write the summaries.** For each bundle JSON found recursively under
+   `<output_dir>/_bundles/` (they are nested in per-layer subfolders):
    a. Read the bundle JSON. It contains: `description`, `parents`, the full
       `upstream` list (each with a business `label`/`display_label`), the model
       `sql`, `semantic_models` (with dimension and measure labels), `metrics`

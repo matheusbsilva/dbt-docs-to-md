@@ -14,12 +14,24 @@ from ..lineage import direct_parents
 from . import templates
 
 
-def slugify_filename(model: ParsedModel) -> str:
-    """Filesystem-safe slug derived from the model's business label."""
-    base = model.display_label.strip().lower()
+def _sanitize(text: str) -> str:
+    """Filesystem-safe token: lowercase, drop unsafe chars, collapse separators."""
+    base = text.strip().lower()
     base = re.sub(r"[^\w\s-]", "", base)
-    base = re.sub(r"[\s_-]+", "-", base).strip("-")
-    return base or model.name
+    base = re.sub(r"[\s_]+", "_", base).strip("_-")
+    return base
+
+
+def model_relpath(model: ParsedModel) -> str:
+    """Output path for a model's Markdown, relative to the output root.
+
+    Models are organized by their dbt layer (warehouse schema): a model in
+    schema ``analytics`` is written to ``analytics/<name>.md``. The file is named
+    after the technical model name. Models without a schema land at the root.
+    """
+    filename = f"{_sanitize(model.name) or model.name}.md"
+    folder = _sanitize(model.schema_name) if model.schema_name else ""
+    return f"{folder}/{filename}" if folder else filename
 
 
 def render_model_md(model: ParsedModel, project, schema_version: str | None = None) -> str:

@@ -1,7 +1,7 @@
 from dbt_docs_to_md.cli import write_outputs
 from dbt_docs_to_md.markdown import templates
 from dbt_docs_to_md.markdown.index import render_index
-from dbt_docs_to_md.markdown.renderer import render_model_md, slugify_filename
+from dbt_docs_to_md.markdown.renderer import model_relpath, render_model_md
 
 
 def _model(project, name):
@@ -38,15 +38,16 @@ def test_column_table_has_tests(project):
     assert "accepted_values (values: vip, standard)" in md
 
 
-def test_slugify_uses_label(project):
-    assert slugify_filename(_model(project, "dim_customers")) == "customers"
+def test_model_relpath_uses_schema_and_name(project):
+    assert model_relpath(_model(project, "dim_customers")) == "analytics/dim_customers.md"
 
 
 def test_index_lists_all_models(project):
-    filenames = {m.unique_id: slugify_filename(m) + ".md" for m in project.models}
+    filenames = {m.unique_id: model_relpath(m) for m in project.models}
     index = render_index(project, filenames)
     assert "Customers (`dim_customers`)" in index
     assert "Total models: 3" in index
+    assert "## analytics" in index
 
 
 def test_pipe_escaping_in_cells(project):
@@ -60,6 +61,7 @@ def test_pipe_escaping_in_cells(project):
 def test_write_outputs_creates_files(project, tmp_path):
     write_outputs(project, tmp_path)
     assert (tmp_path / "index.md").exists()
-    assert (tmp_path / "customers.md").exists()
-    bundles = list((tmp_path / "_bundles").glob("*.json"))
+    assert (tmp_path / "analytics" / "dim_customers.md").exists()
+    bundles = list((tmp_path / "_bundles").rglob("*.json"))
     assert len(bundles) == 3
+    assert (tmp_path / "_bundles" / "analytics" / "dim_customers.json").exists()
