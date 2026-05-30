@@ -1,14 +1,3 @@
-"""Command-line entry point.
-
-Usage::
-
-    dbt-docs-to-md --manifest target/manifest.json --catalog target/catalog.json \\
-                   --output ./catalog_md
-
-Parsing and dbt-schema versioning are delegated to ``dbt-artifacts-parser``
-(``parse_manifest`` / ``parse_catalog`` auto-detect the version, v1..v12).
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -57,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    except Exception as exc:  # parsing/validation failures from the library
+    except Exception as exc:
         print(
             f"error: could not parse dbt artifacts: {exc}\n"
             "Ensure manifest.json/catalog.json were produced by `dbt docs generate` "

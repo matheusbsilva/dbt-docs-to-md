@@ -1,34 +1,17 @@
-"""Render ``metrics.md`` — a business glossary of every metric in the project."""
-
 from __future__ import annotations
 
 from ..domain import ParsedProject
-from .renderer import _cell
+from .environment import render_template
 
 
 def render_metrics_glossary(project: ParsedProject, model_filenames: dict[str, str]) -> str:
-    lines = ["# Metrics Glossary", ""]
-    lines.append("Every metric defined in the dbt Semantic Layer, in business terms.")
-    lines.append("")
-    lines.append("| Metric | Type | How it's calculated | Description | Built on |")
-    lines.append("| --- | --- | --- | --- | --- |")
+    """Render ``metrics.md`` — a business glossary of every metric in the project."""
+    metrics = sorted(project.metrics, key=lambda m: m.display_label.lower())
 
-    for metric in sorted(project.metrics, key=lambda m: m.display_label.lower()):
-        built_on = _built_on(metric, project, model_filenames)
-        lines.append(
-            "| {label} | {type} | {calc} | {desc} | {built} |".format(
-                label=_cell(metric.display_label),
-                type=_cell(metric.type or "—"),
-                calc=_cell(metric.type_params_summary or "—"),
-                desc=_cell(metric.description or "—"),
-                built=built_on,
-            )
-        )
+    def built_on(metric) -> str:
+        return _built_on(metric, project, model_filenames)
 
-    lines.append("")
-    lines.append(f"*Total metrics: {len(project.metrics)}.*")
-    lines.append("")
-    return "\n".join(lines)
+    return render_template("metrics.md.jinja", metrics=metrics, built_on=built_on)
 
 
 def _built_on(metric, project: ParsedProject, model_filenames: dict[str, str]) -> str:

@@ -1,12 +1,3 @@
-"""Map ``dbt-artifacts-parser`` objects onto the version-agnostic domain model.
-
-``dbt-artifacts-parser`` returns a different Pydantic class per dbt schema
-version (manifest v1..v12), but the attribute names we rely on are stable across
-recent versions. We therefore use defensive ``getattr`` access rather than
-importing version-specific classes, so a new dbt version works without code
-changes as long as the library can parse it.
-"""
-
 from __future__ import annotations
 
 from typing import Any
@@ -22,9 +13,7 @@ from .domain import (
 from .semantic_collector import collect_semantic_layer
 from .tests_collector import collect_tests
 
-# Resource types we treat as documentable models (one Markdown file each).
 MODEL_RESOURCE_TYPES = {"model", "snapshot"}
-# Resource types that can appear upstream and be named in lineage.
 REFERENCEABLE_RESOURCE_TYPES = MODEL_RESOURCE_TYPES | {"source", "seed"}
 
 
@@ -34,9 +23,7 @@ def build_project(manifest_obj: Any, catalog_obj: Any | None = None) -> ParsedPr
     sources = _as_dict(getattr(manifest_obj, "sources", {}))
     catalog_nodes = _as_dict(getattr(catalog_obj, "nodes", {})) if catalog_obj else {}
 
-    # Tests are separate nodes; collect them once and attach to models/columns.
     tests_by_model = collect_tests(nodes)
-    # Semantic layer (semantic models + metrics) embedded in the manifest.
     semantic = collect_semantic_layer(manifest_obj)
 
     nodes_by_id: dict[str, ParsedNodeRef] = {}
@@ -53,7 +40,6 @@ def build_project(manifest_obj: Any, catalog_obj: Any | None = None) -> ParsedPr
                 )
             )
 
-    # Sources live in their own collection in the manifest.
     for unique_id, src in sources.items():
         nodes_by_id[unique_id] = _node_ref(unique_id, src, "source")
 
@@ -123,9 +109,6 @@ def _node_ref(unique_id: str, node: Any, rtype: str) -> ParsedNodeRef:
     )
 
 
-# --- small helpers -------------------------------------------------------
-
-
 def _resource_type(node: Any) -> str:
     rt = getattr(node, "resource_type", None)
     return str(getattr(rt, "value", rt) or "")
@@ -146,14 +129,11 @@ def _merged_meta(node: Any) -> dict[str, object]:
 
 
 def _column_type(col: Any, col_name: str, catalog_cols: dict[str, Any]) -> str | None:
-    # Prefer the manifest's declared data_type, then enrich from the catalog
-    # (which reflects the real warehouse types).
     declared = getattr(col, "data_type", None)
     if declared:
         return declared
     entry = catalog_cols.get(col_name)
     if entry is None:
-        # Catalog column names can differ in case; try a case-insensitive match.
         lowered = {k.lower(): v for k, v in catalog_cols.items()}
         entry = lowered.get(col_name.lower())
     return getattr(entry, "type", None) if entry is not None else None
@@ -180,7 +160,6 @@ def _as_dict(value: Any) -> dict[str, Any]:
     if isinstance(value, dict):
         return value
     if hasattr(value, "model_dump"):
-        # e.g. pydantic RootModel wrapping a dict
         dumped = value.model_dump()
         return dumped if isinstance(dumped, dict) else {}
     return {}

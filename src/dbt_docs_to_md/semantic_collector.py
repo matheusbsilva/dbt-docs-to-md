@@ -1,14 +1,3 @@
-"""Collect the dbt Semantic Layer (semantic models + metrics) from a manifest.
-
-The semantic layer is embedded in ``manifest.json`` v12 under ``semantic_models``
-and ``metrics`` (the standalone ``semantic_manifest.json`` artifact is dbt
-Cloud-only and not supported by ``dbt-artifacts-parser``). We map those onto the
-domain models and group them by the dbt model they are built on.
-
-All access is defensive ``getattr`` so manifests without a semantic layer (older
-versions, or projects that don't use it) simply yield empty results.
-"""
-
 from __future__ import annotations
 
 from typing import Any
@@ -27,7 +16,6 @@ from .domain import (
 class SemanticLayer(BaseModel):
     semantic_models: list[SemanticModel] = []
     metrics: list[Metric] = []
-    # model_unique_id -> {"semantic_models": [...], "metrics": [...]}
     by_model_id: dict[str, dict[str, list]] = {}
 
 
@@ -38,7 +26,6 @@ def collect_semantic_layer(manifest_obj: Any) -> SemanticLayer:
     semantic_models = [
         _build_semantic_model(uid, node) for uid, node in raw_semantic.items()
     ]
-    # semantic_model unique_id -> underlying model unique_id
     sm_to_model = {sm.unique_id: sm.model_id for sm in semantic_models}
 
     metrics = [_build_metric(uid, node, sm_to_model) for uid, node in raw_metrics.items()]
@@ -132,7 +119,6 @@ def _underlying_model(node: Any) -> str | None:
     for dep in dep_nodes:
         if isinstance(dep, str) and dep.startswith("model."):
             return dep
-    # Fallback: the `model` field is a ref string like "ref('dim_customers')".
     return None
 
 
@@ -162,7 +148,6 @@ def _type_params_summary(node: Any) -> str | None:
             return f"{measure or 'measure'} over {win}".strip()
         return measure
 
-    # simple / conversion / default: name the base measure
     return _named(getattr(tp, "measure", None))
 
 
@@ -177,7 +162,6 @@ def _filter_str(value: Any) -> str | None:
         return None
     if isinstance(value, str):
         return value
-    # WhereFilterIntersection-style object: collect where_sql_template fields.
     filters = getattr(value, "where_filters", None)
     if filters:
         parts = [getattr(f, "where_sql_template", None) for f in _as_list(filters)]
