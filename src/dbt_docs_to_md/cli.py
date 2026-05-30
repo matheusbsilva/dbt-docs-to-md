@@ -21,7 +21,7 @@ from .bundle import build_bundle
 from .domain import ParsedProject
 from .markdown.index import render_index
 from .markdown.metrics import render_metrics_glossary
-from .markdown.renderer import render_model_md, slugify_filename
+from .markdown.renderer import model_relpath, render_model_md
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -90,9 +90,9 @@ def write_outputs(project: ParsedProject, output: Path, write_bundles: bool = Tr
 
     for model in project.models:
         filename = filenames[model.unique_id]
-        (output / filename).write_text(
-            render_model_md(model, project), encoding="utf-8"
-        )
+        path = output / filename
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(render_model_md(model, project), encoding="utf-8")
 
     (output / "index.md").write_text(render_index(project, filenames), encoding="utf-8")
 
@@ -103,26 +103,32 @@ def write_outputs(project: ParsedProject, output: Path, write_bundles: bool = Tr
 
     if write_bundles:
         bundle_dir = output / "_bundles"
-        bundle_dir.mkdir(exist_ok=True)
         for model in project.models:
             filename = filenames[model.unique_id]
             bundle = build_bundle(model, project, target_md=filename)
-            slug = filename[:-3] if filename.endswith(".md") else filename
-            (bundle_dir / f"{slug}.json").write_text(
+            rel = filename[:-3] if filename.endswith(".md") else filename
+            bundle_path = bundle_dir / f"{rel}.json"
+            bundle_path.parent.mkdir(parents=True, exist_ok=True)
+            bundle_path.write_text(
                 json.dumps(bundle, indent=2, default=str), encoding="utf-8"
             )
 
 
 def _assign_filenames(project: ParsedProject) -> dict[str, str]:
-    """Assign a unique ``.md`` filename per model, resolving slug collisions."""
+    """Assign a unique ``<layer>/<model>.md`` path per model, resolving collisions.
+
+    The path organizes models by dbt layer (warehouse schema) and names the file
+    after the technical model name; see :func:`model_relpath`.
+    """
     used: set[str] = set()
     result: dict[str, str] = {}
     for model in sorted(project.models, key=lambda m: m.unique_id):
-        slug = slugify_filename(model)
-        candidate = slug
+        relpath = model_relpath(model)
+        stem = relpath[:-3] if relpath.endswith(".md") else relpath
+        candidate = stem
         n = 2
         while candidate in used:
-            candidate = f"{slug}-{n}"
+            candidate = f"{stem}-{n}"
             n += 1
         used.add(candidate)
         result[model.unique_id] = f"{candidate}.md"

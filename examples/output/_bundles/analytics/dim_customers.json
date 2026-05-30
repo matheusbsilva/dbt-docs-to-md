@@ -70,7 +70,7 @@
       "description": "The number of distinct customers."
     }
   ],
-  "target_md": "customers.md",
+  "target_md": "analytics/dim_customers.md",
   "placeholders": {
     "lineage": {
       "open": "<!-- LINEAGE_SUMMARY -->",
