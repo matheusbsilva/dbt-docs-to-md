@@ -25,7 +25,7 @@ dbt-docs-to-md = "dbt_docs_to_md.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"dbt_docs_to_md.markdown" = ["templates/*.md.jinja"]
+"dbt_docs_to_md.markdown" = ["templates/*/*.md.jinja"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

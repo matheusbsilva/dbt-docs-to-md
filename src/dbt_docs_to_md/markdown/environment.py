@@ -6,6 +6,9 @@ from jinja2 import Environment, PackageLoader
 
 from . import markers
 
+DEFAULT_LANGUAGE = "en"
+SUPPORTED_LANGUAGES = ("en", "pt_BR")
+
 
 def stringify(value: object) -> str:
     if isinstance(value, (list, tuple)):
@@ -46,14 +49,16 @@ def get_environment() -> Environment:
     env.globals.update(
         LINEAGE_OPEN=markers.LINEAGE_OPEN,
         LINEAGE_CLOSE=markers.LINEAGE_CLOSE,
-        LINEAGE_PLACEHOLDER=markers.LINEAGE_PLACEHOLDER,
         TRANSFORMATION_OPEN=markers.TRANSFORMATION_OPEN,
         TRANSFORMATION_CLOSE=markers.TRANSFORMATION_CLOSE,
-        TRANSFORMATION_PLACEHOLDER=markers.TRANSFORMATION_PLACEHOLDER,
     )
     return env
 
 
-def render_template(name: str, **context: object) -> str:
-    """Hydrate the named template with ``context`` and return the Markdown."""
-    return get_environment().get_template(name).render(**context)
+def render_template(name: str, language: str = DEFAULT_LANGUAGE, **context: object) -> str:
+    """Hydrate ``<language>/<name>`` with ``context`` and return the Markdown."""
+    if language not in SUPPORTED_LANGUAGES:
+        raise ValueError(
+            f"unsupported language {language!r}; choose from {', '.join(SUPPORTED_LANGUAGES)}"
+        )
+    return get_environment().get_template(f"{language}/{name}").render(**context)

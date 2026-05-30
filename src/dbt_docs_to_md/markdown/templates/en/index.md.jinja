@@ -7,7 +7,7 @@ See the [Metrics Glossary](metrics.md) for the {{ project.metrics | length }} me
 
 {% endif %}
 {% for layer, models in layers %}
-## {{ layer }}
+## {{ layer or "(no schema)" }}
 
 | Model | Description | Documentation |
 | --- | --- | --- |

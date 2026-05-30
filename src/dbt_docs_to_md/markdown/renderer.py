@@ -4,7 +4,7 @@ import re
 
 from ..domain import ParsedModel
 from ..lineage import direct_parents
-from .environment import render_template
+from .environment import DEFAULT_LANGUAGE, render_template
 
 
 def _sanitize(text: str) -> str:
@@ -27,7 +27,12 @@ def model_relpath(model: ParsedModel) -> str:
     return f"{folder}/{filename}" if folder else filename
 
 
-def render_model_md(model: ParsedModel, project, schema_version: str | None = None) -> str:
+def render_model_md(
+    model: ParsedModel,
+    project,
+    schema_version: str | None = None,
+    language: str = DEFAULT_LANGUAGE,
+) -> str:
     """Render a model's Markdown document from the ``model.md.jinja`` template.
 
     Two prose sections — Upstream Lineage and What This Model Does — are emitted
@@ -37,6 +42,7 @@ def render_model_md(model: ParsedModel, project, schema_version: str | None = No
     version = schema_version or project.dbt_schema_version or "unknown"
     return render_template(
         "model.md.jinja",
+        language=language,
         model=model,
         parents=direct_parents(model.unique_id, project),
         version=version,

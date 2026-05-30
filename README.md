@@ -63,7 +63,8 @@ Generate `manifest.json` and `catalog.json` in your dbt project first
 python -m dbt_docs_to_md \
   --manifest target/manifest.json \
   --catalog  target/catalog.json \
-  --output   ./catalog_md
+  --output   ./catalog_md \
+  --language en          # or pt_BR
 ```
 
 This writes to `./catalog_md`:
@@ -76,7 +77,10 @@ This writes to `./catalog_md`:
   tree) used by the LLM phase.
 
 `--catalog` is optional (it enriches column data types). Add `--no-bundles` to
-skip the LLM context bundles.
+skip the LLM context bundles. `--language` selects the output language (`en` by
+default, or `pt_BR` for Brazilian Portuguese); the document structure lives in
+per-language Jinja templates under
+[`src/dbt_docs_to_md/markdown/templates/<language>/`](./src/dbt_docs_to_md/markdown/templates).
 
 Then run the skill (or follow [`SKILL.md`](./SKILL.md) manually) to fill in the
 **Upstream Lineage** and **What This Model Does** sections.

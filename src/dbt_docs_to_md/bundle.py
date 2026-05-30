@@ -3,14 +3,21 @@ from __future__ import annotations
 from .domain import ParsedModel, ParsedProject
 from .lineage import direct_parents, upstream_tree
 from .markdown import markers
+from .markdown.environment import DEFAULT_LANGUAGE
 
 
-def build_bundle(model: ParsedModel, project: ParsedProject, target_md: str) -> dict:
+def build_bundle(
+    model: ParsedModel,
+    project: ParsedProject,
+    target_md: str,
+    language: str = DEFAULT_LANGUAGE,
+) -> dict:
     return {
         "unique_id": model.unique_id,
         "name": model.name,
         "label": model.label,
         "description": model.description,
+        "language": language,
         "parents": [_ref(r) for r in direct_parents(model.unique_id, project)],
         "upstream": [_ref(r) for r in upstream_tree(model.unique_id, project)],
         "sql": model.transformation_sql,
