@@ -1,0 +1,35 @@
+{
+  "unique_id": "model.shop.stg_customers",
+  "name": "stg_customers",
+  "label": "Cleaned Customers",
+  "description": "Cleaned customer records from the raw ingestion layer.",
+  "parents": [
+    {
+      "name": "customers",
+      "label": "Source Customers",
+      "display_label": "Source Customers",
+      "resource_type": "source"
+    }
+  ],
+  "upstream": [
+    {
+      "name": "customers",
+      "label": "Source Customers",
+      "display_label": "Source Customers",
+      "resource_type": "source"
+    }
+  ],
+  "sql": "select id as customer_id, email from \"warehouse\".\"raw\".\"customers\"",
+  "sql_source": "compiled",
+  "target_md": "cleaned-customers.md",
+  "placeholders": {
+    "lineage": {
+      "open": "<!-- LINEAGE_SUMMARY -->",
+      "close": "<!-- /LINEAGE_SUMMARY -->"
+    },
+    "transformations": {
+      "open": "<!-- TRANSFORMATION_SUMMARY -->",
+      "close": "<!-- /TRANSFORMATION_SUMMARY -->"
+    }
+  }
+}
