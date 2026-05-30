@@ -1,14 +1,3 @@
-"""Command-line entry point.
-
-Usage::
-
-    dbt-docs-to-md --manifest target/manifest.json --catalog target/catalog.json \\
-                   --output ./catalog_md
-
-Parsing and dbt-schema versioning are delegated to ``dbt-artifacts-parser``
-(``parse_manifest`` / ``parse_catalog`` auto-detect the version, v1..v12).
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -19,6 +8,7 @@ from pathlib import Path
 from .adapter import build_project
 from .bundle import build_bundle
 from .domain import ParsedProject
+from .markdown.environment import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES
 from .markdown.index import render_index
 from .markdown.metrics import render_metrics_glossary
 from .markdown.renderer import model_relpath, render_model_md
@@ -50,6 +40,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Skip writing per-model context bundles (the LLM phase needs them)",
     )
+    parser.add_argument(
+        "--language",
+        choices=SUPPORTED_LANGUAGES,
+        default=DEFAULT_LANGUAGE,
+        help="Language for the generated Markdown (default: %(default)s)",
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -57,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    except Exception as exc:  # parsing/validation failures from the library
+    except Exception as exc:
         print(
             f"error: could not parse dbt artifacts: {exc}\n"
             "Ensure manifest.json/catalog.json were produced by `dbt docs generate` "
@@ -66,7 +62,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    write_outputs(project, args.output, write_bundles=not args.no_bundles)
+    write_outputs(
+        project,
+        args.output,
+        write_bundles=not args.no_bundles,
+        language=args.language,
+    )
     print(
         f"Documented {len(project.models)} model(s) -> {args.output} "
         f"(schema: {project.dbt_schema_version or 'unknown'})."
@@ -84,7 +85,12 @@ def load_project(manifest_path: Path, catalog_path: Path | None) -> ParsedProjec
     return build_project(manifest_obj, catalog_obj)
 
 
-def write_outputs(project: ParsedProject, output: Path, write_bundles: bool = True) -> None:
+def write_outputs(
+    project: ParsedProject,
+    output: Path,
+    write_bundles: bool = True,
+    language: str = DEFAULT_LANGUAGE,
+) -> None:
     output.mkdir(parents=True, exist_ok=True)
     filenames = _assign_filenames(project)
 
@@ -92,20 +98,23 @@ def write_outputs(project: ParsedProject, output: Path, write_bundles: bool = Tr
         filename = filenames[model.unique_id]
         path = output / filename
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(render_model_md(model, project), encoding="utf-8")
+        path.write_text(render_model_md(model, project, language=language), encoding="utf-8")
 
-    (output / "index.md").write_text(render_index(project, filenames), encoding="utf-8")
+    (output / "index.md").write_text(
+        render_index(project, filenames, language=language), encoding="utf-8"
+    )
 
     if project.metrics:
         (output / "metrics.md").write_text(
-            render_metrics_glossary(project, filenames), encoding="utf-8"
+            render_metrics_glossary(project, filenames, language=language),
+            encoding="utf-8",
         )
 
     if write_bundles:
         bundle_dir = output / "_bundles"
         for model in project.models:
             filename = filenames[model.unique_id]
-            bundle = build_bundle(model, project, target_md=filename)
+            bundle = build_bundle(model, project, target_md=filename, language=language)
             rel = filename[:-3] if filename.endswith(".md") else filename
             bundle_path = bundle_dir / f"{rel}.json"
             bundle_path.parent.mkdir(parents=True, exist_ok=True)

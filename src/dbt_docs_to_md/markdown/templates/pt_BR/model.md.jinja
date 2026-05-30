@@ -1,0 +1,104 @@
+# {{ model.display_label }}
+
+> **Modelo técnico:** `{{ model.name }}`{% if model.relation_name %}  ·  **Tabela:** `{{ model.relation_name }}`{% endif %}{% if model.tags %}  ·  **Tags:** {{ model.tags | join(', ') }}{% endif +%}
+
+## Descrição
+{{ model.description or "_Nenhuma descrição fornecida._" }}
+
+## Contexto de Negócio
+{% if model.meta %}
+| Chave | Valor |
+| --- | --- |
+{% for key, value in model.meta | dictsort(true) %}
+| {{ key | cell }} | {{ value | cell }} |
+{% endfor %}
+{% else %}
+_Nenhum metadado fornecido._
+{% endif %}
+
+## Linhagem de Origem
+{{ LINEAGE_OPEN }}
+_Pendente: resumo da linhagem a ser escrito a partir das fontes de origem do modelo._
+{{ LINEAGE_CLOSE }}
+
+**Fontes diretas:** {% if parents %}{{ parents | map(attribute='display_label') | join(', ') }}{% else %}_Nenhuma (este modelo lê diretamente de dados brutos ou não possui fontes rastreadas)._{% endif +%}
+
+## O Que Este Modelo Faz
+{{ TRANSFORMATION_OPEN }}
+_Pendente: resumo da transformação a ser escrito a partir do SQL do modelo._
+{{ TRANSFORMATION_CLOSE }}
+
+## Colunas
+{% if model.columns %}
+| Coluna | Tipo | Descrição | Testes | Meta |
+| --- | --- | --- | --- | --- |
+{% for col in model.columns %}
+| {{ col.name | cell }} | {{ (col.data_type or "—") | cell }} | {{ (col.description or "—") | cell }} | {{ ((col.tests | describe_join) or "—") | cell }} | {{ ((col.meta | inline_meta) or "—") | cell }} |
+{% endfor %}
+{% else %}
+_Nenhuma coluna documentada._
+{% endif %}
+
+{% if model.semantic_models %}
+## Modelo Semântico
+{% for sm in model.semantic_models %}
+### {{ sm.display_label }}
+{% if sm.description %}
+{{ sm.description }}
+{% endif %}
+{% if sm.primary_entity %}
+_Entidade primária:_ `{{ sm.primary_entity }}`
+{% endif %}
+
+{% if sm.entities %}
+**Entidades** (como estes dados se relacionam com outros modelos)
+
+| Entidade | Tipo | Descrição |
+| --- | --- | --- |
+{% for e in sm.entities %}
+| {{ e.display_label | cell }} | {{ (e.type or "—") | cell }} | {{ (e.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% if sm.dimensions %}
+**Dimensões** (formas de segmentar as métricas)
+
+| Dimensão | Tipo | Descrição |
+| --- | --- | --- |
+{% for d in sm.dimensions %}
+| {{ d.display_label | cell }} | {{ (d.type or "—") | cell }} | {{ (d.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% if sm.measures %}
+**Medidas** (as quantidades que podem ser agregadas)
+
+| Medida | Agregação | Descrição |
+| --- | --- | --- |
+{% for m in sm.measures %}
+| {{ m.display_label | cell }} | {{ (m.agg or "—") | cell }} | {{ (m.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if model.metrics %}
+## Métricas Que Você Pode Medir
+**Métricas disponíveis:** {{ model.metrics | map(attribute='display_label') | join(', ') }}
+
+| Métrica | Tipo | Como é calculada | Descrição |
+| --- | --- | --- | --- |
+{% for m in model.metrics %}
+| {{ m.display_label | cell }} | {{ (m.type or "—") | cell }} | {{ (m.type_params_summary or "—") | cell }} | {{ (m.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% if model.model_tests %}
+## Testes Aplicados (nível de modelo)
+{% for test in model.model_tests %}
+- {{ test.describe() }}
+{% endfor %}
+
+{% endif %}
+---
+*Gerado a partir de artefatos dbt (schema: {{ version }}).*

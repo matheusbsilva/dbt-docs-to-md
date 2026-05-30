@@ -1,0 +1,11 @@
+# Glossário de Métricas
+
+Cada métrica definida na Camada Semântica do dbt, em termos de negócio.
+
+| Métrica | Tipo | Como é calculada | Descrição | Construída sobre |
+| --- | --- | --- | --- | --- |
+{% for metric in metrics %}
+| {{ metric.display_label | cell }} | {{ (metric.type or "—") | cell }} | {{ (metric.type_params_summary or "—") | cell }} | {{ (metric.description or "—") | cell }} | {{ built_on(metric) }} |
+{% endfor %}
+
+*Total de métricas: {{ metrics | length }}.*

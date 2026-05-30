@@ -1,14 +1,3 @@
-"""Collect dbt test nodes and associate them back to models and columns.
-
-dbt represents data tests as separate nodes (``resource_type == "test"``). Each
-test depends on the model it validates and may carry a ``column_name`` (column
-test) or not (model-level test). We build a map::
-
-    {model_unique_id: {column_name | None: [ColumnTest, ...]}}
-
-which the adapter merges into the parsed models.
-"""
-
 from __future__ import annotations
 
 from typing import Any
@@ -61,7 +50,6 @@ def _build_test(node: Any) -> ColumnTest:
         if name:
             return ColumnTest(name=str(name), kwargs=_as_dict(kwargs))
 
-    # Singular / custom tests have no test_metadata; use a readable name.
     return ColumnTest(name=str(getattr(node, "name", "custom")))
 
 

@@ -1,5 +1,5 @@
 from dbt_docs_to_md.cli import write_outputs
-from dbt_docs_to_md.markdown import templates
+from dbt_docs_to_md.markdown import markers
 from dbt_docs_to_md.markdown.index import render_index
 from dbt_docs_to_md.markdown.renderer import model_relpath, render_model_md
 
@@ -23,8 +23,8 @@ def test_render_contains_sections(project):
 
 def test_placeholders_present(project):
     md = render_model_md(_model(project, "dim_customers"), project)
-    assert templates.LINEAGE_OPEN in md and templates.LINEAGE_CLOSE in md
-    assert templates.TRANSFORMATION_OPEN in md and templates.TRANSFORMATION_CLOSE in md
+    assert markers.LINEAGE_OPEN in md and markers.LINEAGE_CLOSE in md
+    assert markers.TRANSFORMATION_OPEN in md and markers.TRANSFORMATION_CLOSE in md
 
 
 def test_direct_sources_use_labels(project):

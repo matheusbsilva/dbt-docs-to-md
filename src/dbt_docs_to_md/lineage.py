@@ -1,11 +1,3 @@
-"""Resolve upstream lineage and business labels for models.
-
-Lineage scope (per project decision): the *full transitive* upstream tree,
-including raw sources and seeds, so business stakeholders get the complete origin
-story of a model's data. Upstream nodes are named by their ``label`` meta key
-when available.
-"""
-
 from __future__ import annotations
 
 from .domain import ParsedNodeRef, ParsedProject
@@ -39,7 +31,6 @@ def upstream_tree(model_id: str, project: ParsedProject) -> list[ParsedNodeRef]:
         ref = project.nodes_by_id.get(current)
         if ref is not None:
             order.append(ref)
-        # Recurse only into nodes that are themselves models with parents.
         stack.extend(_parent_ids(current, models))
 
     return order

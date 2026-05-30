@@ -1,0 +1,104 @@
+# {{ model.display_label }}
+
+> **Technical model:** `{{ model.name }}`{% if model.relation_name %}  ·  **Table:** `{{ model.relation_name }}`{% endif %}{% if model.tags %}  ·  **Tags:** {{ model.tags | join(', ') }}{% endif +%}
+
+## Description
+{{ model.description or "_No description provided._" }}
+
+## Business Context
+{% if model.meta %}
+| Key | Value |
+| --- | --- |
+{% for key, value in model.meta | dictsort(true) %}
+| {{ key | cell }} | {{ value | cell }} |
+{% endfor %}
+{% else %}
+_No metadata provided._
+{% endif %}
+
+## Upstream Lineage
+{{ LINEAGE_OPEN }}
+_Pending: lineage summary to be written from the model's upstream sources._
+{{ LINEAGE_CLOSE }}
+
+**Direct sources:** {% if parents %}{{ parents | map(attribute='display_label') | join(', ') }}{% else %}_None (this model reads directly from raw data or has no tracked sources)._{% endif +%}
+
+## What This Model Does
+{{ TRANSFORMATION_OPEN }}
+_Pending: transformation summary to be written from the model's SQL._
+{{ TRANSFORMATION_CLOSE }}
+
+## Columns
+{% if model.columns %}
+| Column | Type | Description | Tests | Meta |
+| --- | --- | --- | --- | --- |
+{% for col in model.columns %}
+| {{ col.name | cell }} | {{ (col.data_type or "—") | cell }} | {{ (col.description or "—") | cell }} | {{ ((col.tests | describe_join) or "—") | cell }} | {{ ((col.meta | inline_meta) or "—") | cell }} |
+{% endfor %}
+{% else %}
+_No columns documented._
+{% endif %}
+
+{% if model.semantic_models %}
+## Semantic Model
+{% for sm in model.semantic_models %}
+### {{ sm.display_label }}
+{% if sm.description %}
+{{ sm.description }}
+{% endif %}
+{% if sm.primary_entity %}
+_Primary entity:_ `{{ sm.primary_entity }}`
+{% endif %}
+
+{% if sm.entities %}
+**Entities** (how this data joins to other models)
+
+| Entity | Type | Description |
+| --- | --- | --- |
+{% for e in sm.entities %}
+| {{ e.display_label | cell }} | {{ (e.type or "—") | cell }} | {{ (e.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% if sm.dimensions %}
+**Dimensions** (ways to slice the metrics)
+
+| Dimension | Type | Description |
+| --- | --- | --- |
+{% for d in sm.dimensions %}
+| {{ d.display_label | cell }} | {{ (d.type or "—") | cell }} | {{ (d.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% if sm.measures %}
+**Measures** (the quantities that can be aggregated)
+
+| Measure | Aggregation | Description |
+| --- | --- | --- |
+{% for m in sm.measures %}
+| {{ m.display_label | cell }} | {{ (m.agg or "—") | cell }} | {{ (m.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if model.metrics %}
+## Metrics You Can Measure
+**Available metrics:** {{ model.metrics | map(attribute='display_label') | join(', ') }}
+
+| Metric | Type | How it's calculated | Description |
+| --- | --- | --- | --- |
+{% for m in model.metrics %}
+| {{ m.display_label | cell }} | {{ (m.type or "—") | cell }} | {{ (m.type_params_summary or "—") | cell }} | {{ (m.description or "—") | cell }} |
+{% endfor %}
+
+{% endif %}
+{% if model.model_tests %}
+## Tests Applied (model level)
+{% for test in model.model_tests %}
+- {{ test.describe() }}
+{% endfor %}
+
+{% endif %}
+---
+*Generated from dbt artifacts (schema: {{ version }}).*

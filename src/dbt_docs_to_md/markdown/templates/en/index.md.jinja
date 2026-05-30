@@ -1,0 +1,19 @@
+# Data Catalog Index
+
+Business-readable documentation for every dbt model in the project, organized by layer.
+
+{% if project.metrics %}
+See the [Metrics Glossary](metrics.md) for the {{ project.metrics | length }} metric(s) available in the semantic layer.
+
+{% endif %}
+{% for layer, models in layers %}
+## {{ layer or "(no schema)" }}
+
+| Model | Description | Documentation |
+| --- | --- | --- |
+{% for model in models %}
+| {{ (model.label ~ " (`" ~ model.name ~ "`)" if model.label and model.label != model.name else model.display_label) | cell }} | {{ (model.description or "—") | cell }} | [View]({{ filenames[model.unique_id] }}) |
+{% endfor %}
+
+{% endfor %}
+*Total models: {{ project.models | length }}. Generated from dbt schema: {{ version }}.*

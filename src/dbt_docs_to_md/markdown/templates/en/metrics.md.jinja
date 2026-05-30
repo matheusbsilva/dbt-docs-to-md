@@ -1,0 +1,11 @@
+# Metrics Glossary
+
+Every metric defined in the dbt Semantic Layer, in business terms.
+
+| Metric | Type | How it's calculated | Description | Built on |
+| --- | --- | --- | --- | --- |
+{% for metric in metrics %}
+| {{ metric.display_label | cell }} | {{ (metric.type or "—") | cell }} | {{ (metric.type_params_summary or "—") | cell }} | {{ (metric.description or "—") | cell }} | {{ built_on(metric) }} |
+{% endfor %}
+
+*Total metrics: {{ metrics | length }}.*

@@ -50,19 +50,23 @@ parsing; you (Claude) write two prose sections per model.
    python -m dbt_docs_to_md \
      --manifest <path/to/manifest.json> \
      --catalog  <path/to/catalog.json> \
-     --output   <output_dir>
+     --output   <output_dir> \
+     --language <en|pt_BR>
    ```
 
-   If it errors that the artifacts can't be parsed, report the message to the
-   user (likely an unsupported dbt version or a non-`docs generate` file) — do
-   not guess or hand-edit the artifacts.
+   `--language` is optional and defaults to `en`; pass `pt_BR` to generate the
+   docs in Brazilian Portuguese. If it errors that the artifacts can't be parsed,
+   report the message to the user (likely an unsupported dbt version or a
+   non-`docs generate` file) — do not guess or hand-edit the artifacts.
 
 3. **Write the summaries.** For each bundle JSON found recursively under
    `<output_dir>/_bundles/` (they are nested in per-layer subfolders):
    a. Read the bundle JSON. It contains: `description`, `parents`, the full
       `upstream` list (each with a business `label`/`display_label`), the model
       `sql`, `semantic_models` (with dimension and measure labels), `metrics`
-      (label, type, description), and `target_md`.
+      (label, type, description), `target_md`, and `language`. **Write both
+      summaries in the bundle's `language`** (`en` → English, `pt_BR` → Brazilian
+      Portuguese) so the prose matches the generated document.
    b. Compose an **Upstream Lineage** summary (2–4 sentences). Refer to upstream
       models/sources **only by their `display_label`** (the business name) —
       never the technical model name. Trace the origin of the data from raw
@@ -90,3 +94,5 @@ parsing; you (Claude) write two prose sections per model.
 - When referencing metrics or dimensions, use their business **label** as shown
   in the bundle.
 - Keep each summary concise: a short paragraph each is ideal.
+- Write in the bundle's `language`. The document's headings are already in that
+  language; keep your prose consistent with it (e.g. Portuguese for `pt_BR`).
