@@ -52,6 +52,26 @@ def build_project(manifest_obj: Any, catalog_obj: Any | None = None) -> ParsedPr
     )
 
 
+def select_layers(
+    models: list[ParsedModel], layers: list[str] | None
+) -> tuple[list[ParsedModel], list[str]]:
+    """Filter models to the requested dbt layers (folders), case-insensitively.
+
+    A model matches if any of its fqn folder segments (see
+    :attr:`ParsedModel.layers`) is in ``layers``. When ``layers`` is empty or
+    ``None`` the models are returned unchanged.
+
+    Returns ``(filtered_models, available_layers)`` where ``available_layers`` is
+    always the sorted set of layers present across ``models`` (for diagnostics).
+    """
+    available = sorted({layer for m in models for layer in m.layers})
+    if not layers:
+        return models, available
+    wanted = {layer.strip().lower() for layer in layers if layer.strip()}
+    filtered = [m for m in models if any(layer.lower() in wanted for layer in m.layers)]
+    return filtered, available
+
+
 def _build_model(
     unique_id: str,
     node: Any,
@@ -91,6 +111,7 @@ def _build_model(
         columns=columns,
         model_tests=model_tests.get(None, []),
         parents=_depends_on_nodes(node),
+        fqn=_as_list(getattr(node, "fqn", None)),
         raw_code=getattr(node, "raw_code", None),
         compiled_code=getattr(node, "compiled_code", None),
         semantic_models=sem.get("semantic_models", []),

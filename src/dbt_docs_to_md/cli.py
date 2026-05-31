@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from .adapter import build_project
+from .adapter import build_project, select_layers
 from .bundle import build_bundle
 from .domain import ParsedProject
 from .markdown.environment import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES
@@ -46,7 +46,19 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_LANGUAGE,
         help="Language for the generated Markdown (default: %(default)s)",
     )
+    parser.add_argument(
+        "--layer",
+        action="append",
+        default=None,
+        metavar="LAYER",
+        help=(
+            "Only document models in this dbt layer (folder), e.g. --layer marts. "
+            "Repeat or comma-separate for multiple layers. Reduces output and "
+            "LLM token usage by skipping non-business layers."
+        ),
+    )
     args = parser.parse_args(argv)
+    layers = [part for value in (args.layer or []) for part in value.split(",")]
 
     try:
         project = load_project(args.manifest, args.catalog)
@@ -62,15 +74,25 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
+    filtered, available = select_layers(project.models, layers)
+    if layers and not filtered:
+        print(
+            f"warning: no models matched layer(s) {layers}; "
+            f"available layers: {', '.join(available) or '(none)'}",
+            file=sys.stderr,
+        )
+    project.models = filtered
+
     write_outputs(
         project,
         args.output,
         write_bundles=not args.no_bundles,
         language=args.language,
     )
+    layer_note = f", layers: {', '.join(layers)}" if layers else ""
     print(
         f"Documented {len(project.models)} model(s) -> {args.output} "
-        f"(schema: {project.dbt_schema_version or 'unknown'})."
+        f"(schema: {project.dbt_schema_version or 'unknown'}{layer_note})."
     )
     return 0
 
