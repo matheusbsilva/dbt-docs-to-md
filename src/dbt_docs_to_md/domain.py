@@ -132,6 +132,7 @@ class ParsedModel(BaseModel):
     columns: list[ParsedColumn] = Field(default_factory=list)
     model_tests: list[ColumnTest] = Field(default_factory=list)
     parents: list[str] = Field(default_factory=list)
+    fqn: list[str] = Field(default_factory=list)
     raw_code: str | None = None
     compiled_code: str | None = None
     semantic_models: list[SemanticModel] = Field(default_factory=list)
@@ -141,6 +142,16 @@ class ParsedModel(BaseModel):
     def label(self) -> str | None:
         value = self.meta.get(LABEL_META_KEY)
         return str(value) if value is not None else None
+
+    @property
+    def layers(self) -> list[str]:
+        """Folder segments of the dbt fqn, e.g. ``['marts']`` or ``['marts', 'finance']``.
+
+        Excludes the leading package name and the trailing model name, so a model
+        whose fqn is ``['shop', 'marts', 'dim_customers']`` has layers ``['marts']``.
+        Root-level models (a 2-element fqn) have no layers.
+        """
+        return self.fqn[1:-1]
 
     @property
     def display_label(self) -> str:

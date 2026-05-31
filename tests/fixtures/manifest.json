@@ -18,6 +18,7 @@
       "unique_id": "model.shop.stg_customers",
       "fqn": [
         "shop",
+        "staging",
         "stg_customers"
       ],
       "alias": "stg_customers",
@@ -76,6 +77,7 @@
       "unique_id": "model.shop.stg_orders",
       "fqn": [
         "shop",
+        "staging",
         "stg_orders"
       ],
       "alias": "stg_orders",
@@ -139,6 +141,7 @@
       "unique_id": "model.shop.dim_customers",
       "fqn": [
         "shop",
+        "marts",
         "dim_customers"
       ],
       "alias": "dim_customers",
