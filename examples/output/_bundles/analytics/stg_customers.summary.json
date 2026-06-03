@@ -1,0 +1,4 @@
+{
+  "lineage": "Cleaned Customers is built directly from the raw Source Customers feed, which is loaded into the warehouse from the source system. It is the first, lightly cleaned layer on top of that raw data.",
+  "transformation": "This model takes the raw customer records and standardizes them, keeping each customer's identifier and email address ready for downstream use."
+}

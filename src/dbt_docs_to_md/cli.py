@@ -10,6 +10,7 @@ from .bundle import build_bundle
 from .domain import ParsedProject
 from .markdown.environment import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES
 from .markdown.index import render_index
+from .markdown.inject import inject_summaries
 from .markdown.metrics import render_metrics_glossary
 from .markdown.renderer import model_relpath, render_model_md
 
@@ -22,7 +23,12 @@ def main(argv: list[str] | None = None) -> int:
             "for business stakeholders."
         ),
     )
-    parser.add_argument("--manifest", required=True, type=Path, help="Path to manifest.json")
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=None,
+        help="Path to manifest.json (required unless --inject)",
+    )
     parser.add_argument(
         "--catalog",
         type=Path,
@@ -39,6 +45,15 @@ def main(argv: list[str] | None = None) -> int:
         "--no-bundles",
         action="store_true",
         help="Skip writing per-model context bundles (the LLM phase needs them)",
+    )
+    parser.add_argument(
+        "--inject",
+        action="store_true",
+        help=(
+            "Injection mode: splice the prose from <output>/_bundles/**/*.summary.json "
+            "into the generated .md files. Run this after writing the summaries; "
+            "does not need --manifest."
+        ),
     )
     parser.add_argument(
         "--language",
@@ -58,6 +73,23 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     args = parser.parse_args(argv)
+
+    if args.inject:
+        if not args.output.is_dir():
+            print(f"error: output directory not found: {args.output}", file=sys.stderr)
+            return 2
+        report = inject_summaries(args.output)
+        for warning in report.warnings:
+            print(f"warning: {warning}", file=sys.stderr)
+        print(
+            f"Injected {report.injected} summary(ies) into {args.output} "
+            f"(skipped {report.skipped})."
+        )
+        return 0
+
+    if args.manifest is None:
+        parser.error("--manifest is required unless --inject is given")
+
     layers = [part for value in (args.layer or []) for part in value.split(",")]
 
     try:
@@ -136,7 +168,7 @@ def write_outputs(
         bundle_dir = output / "_bundles"
         for model in project.models:
             filename = filenames[model.unique_id]
-            bundle = build_bundle(model, project, target_md=filename, language=language)
+            bundle = build_bundle(model, project, language=language)
             rel = filename[:-3] if filename.endswith(".md") else filename
             bundle_path = bundle_dir / f"{rel}.json"
             bundle_path.parent.mkdir(parents=True, exist_ok=True)

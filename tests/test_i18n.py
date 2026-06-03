@@ -58,8 +58,8 @@ def test_unsupported_language_raises(project):
 
 def test_bundle_carries_language(project):
     dim = _model(project, "dim_customers")
-    assert build_bundle(dim, project, "customers.md")["language"] == "en"
-    assert build_bundle(dim, project, "customers.md", language="pt_BR")["language"] == "pt_BR"
+    assert build_bundle(dim, project)["language"] == "en"
+    assert build_bundle(dim, project, language="pt_BR")["language"] == "pt_BR"
 
 
 def test_write_outputs_pt_br(project, tmp_path):

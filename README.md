@@ -16,6 +16,11 @@ It combines two phases:
      business `label`, and
    - a **transformation** summary inferred from the model's SQL.
 
+   Claude reads only the compact per-model bundle and writes a small
+   `*.summary.json` per model; a second script run (`--inject`) splices the prose
+   into the `.md` files. Claude never reads or edits the `.md` files, which keeps
+   the LLM phase's token usage low.
+
 ## Why a library, not hand-rolled schemas
 
 Parsing and **dbt-schema versioning** are delegated to
@@ -82,8 +87,17 @@ default, or `pt_BR` for Brazilian Portuguese); the document structure lives in
 per-language Jinja templates under
 [`src/dbt_docs_to_md/markdown/templates/<language>/`](./src/dbt_docs_to_md/markdown/templates).
 
-Then run the skill (or follow [`SKILL.md`](./SKILL.md) manually) to fill in the
-**Upstream Lineage** and **What This Model Does** sections.
+Then run the skill (or follow [`SKILL.md`](./SKILL.md) manually): Claude writes a
+`_bundles/<layer>/<model>.summary.json` per model, and a final injection pass
+splices them into the docs:
+
+```bash
+python -m dbt_docs_to_md --inject --output ./catalog_md
+```
+
+This fills in the **Upstream Lineage** and **What This Model Does** sections.
+Re-running the generate command resets the `.md` files to placeholders, so the
+order is always generate → write summaries → inject.
 
 See [`examples/output`](./examples/output) for fully generated sample docs
 (including filled-in summaries in `analytics/dim_customers.md`).
@@ -127,7 +141,7 @@ src/dbt_docs_to_md/
 ├── semantic_collector.py # collect semantic models + metrics from the manifest
 ├── lineage.py         # transitive upstream resolution + labels
 ├── bundle.py          # per-model context bundle for Claude
-└── markdown/          # renderer, index, metrics glossary, templates
+└── markdown/          # renderer, index, metrics glossary, inject, templates
 tests/                 # pytest suite + synthetic v12 fixtures
 examples/output/       # sample generated docs
 SKILL.md               # Claude Skill manifest + workflow

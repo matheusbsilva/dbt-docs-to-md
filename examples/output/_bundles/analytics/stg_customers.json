@@ -3,35 +3,17 @@
   "name": "stg_customers",
   "label": "Cleaned Customers",
   "description": "Cleaned customer records from the raw ingestion layer.",
-  "parents": [
-    {
-      "name": "customers",
-      "label": "Source Customers",
-      "display_label": "Source Customers",
-      "resource_type": "source"
-    }
-  ],
+  "language": "en",
   "upstream": [
     {
       "name": "customers",
       "label": "Source Customers",
       "display_label": "Source Customers",
-      "resource_type": "source"
+      "resource_type": "source",
+      "direct": true
     }
   ],
   "sql": "select id as customer_id, email from \"warehouse\".\"raw\".\"customers\"",
-  "sql_source": "compiled",
   "semantic_models": [],
-  "metrics": [],
-  "target_md": "analytics/stg_customers.md",
-  "placeholders": {
-    "lineage": {
-      "open": "<!-- LINEAGE_SUMMARY -->",
-      "close": "<!-- /LINEAGE_SUMMARY -->"
-    },
-    "transformations": {
-      "open": "<!-- TRANSFORMATION_SUMMARY -->",
-      "close": "<!-- /TRANSFORMATION_SUMMARY -->"
-    }
-  }
+  "metrics": []
 }
