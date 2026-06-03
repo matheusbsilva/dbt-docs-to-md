@@ -78,8 +78,9 @@ This writes to `./catalog_md`:
 - `<layer>/<model>.md` — one file per model, organized into per-layer folders
   (the model's warehouse schema) and named after the technical model, with
   placeholder regions for the two prose sections,
-- `_bundles/<layer>/<model>.json` — compact context bundles (mirroring the model
-  tree) used by the LLM phase.
+- `_bundles/<layer>/<model>.toon` — compact context bundles (mirroring the model
+  tree) used by the LLM phase, written in [TOON](https://github.com/toon-format/toon)
+  to minimize the LLM's read-token cost.
 
 `--catalog` is optional (it enriches column data types). Add `--no-bundles` to
 skip the LLM context bundles. `--language` selects the output language (`en` by

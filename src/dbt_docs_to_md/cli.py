@@ -5,6 +5,8 @@ import json
 import sys
 from pathlib import Path
 
+import toons
+
 from .adapter import build_project, select_layers
 from .bundle import build_bundle
 from .domain import ParsedProject
@@ -170,11 +172,9 @@ def write_outputs(
             filename = filenames[model.unique_id]
             bundle = build_bundle(model, project, language=language)
             rel = filename[:-3] if filename.endswith(".md") else filename
-            bundle_path = bundle_dir / f"{rel}.json"
+            bundle_path = bundle_dir / f"{rel}.toon"
             bundle_path.parent.mkdir(parents=True, exist_ok=True)
-            bundle_path.write_text(
-                json.dumps(bundle, indent=2, default=str), encoding="utf-8"
-            )
+            bundle_path.write_text(toons.dumps(bundle), encoding="utf-8")
 
 
 def _assign_filenames(project: ParsedProject) -> dict[str, str]:

@@ -26,10 +26,12 @@ parsing; you (Claude) write two prose sections per model.
    - `index.md` listing every model, grouped by layer,
    - `metrics.md` — a business glossary of every metric (only when the project
      uses the dbt Semantic Layer),
-   - `_bundles/<layer>/<model>.json` — a compact context bundle per model
+   - `_bundles/<layer>/<model>.toon` — a compact context bundle per model
      (mirroring the model tree) that gives you exactly what you need to write the
-     prose. This is the **only** file you need to read per model; you do not open
-     the generated `.md`.
+     prose. It is written in [TOON](https://github.com/toon-format/toon) (a
+     token-efficient, human-readable JSON alternative) to minimize read cost. This
+     is the **only** file you need to read per model; you do not open the generated
+     `.md`.
 
    When a model has a semantic model / metrics defined on it, the deterministic
    sections **Semantic Model** (entities, dimensions, measures) and **Metrics You
@@ -62,10 +64,10 @@ parsing; you (Claude) write two prose sections per model.
    report the message to the user (likely an unsupported dbt version or a
    non-`docs generate` file) — do not guess or hand-edit the artifacts.
 
-3. **Write the summaries.** For each bundle JSON found recursively under
-   `<output_dir>/_bundles/` (they are nested in per-layer subfolders; **skip any
-   `*.summary.json`** — those are your output):
-   a. Read the bundle JSON. It contains: `description`, the full `upstream` list
+3. **Write the summaries.** For each bundle TOON file (`*.toon`) found recursively
+   under `<output_dir>/_bundles/` (they are nested in per-layer subfolders; the
+   `*.summary.json` files you write are your output, not inputs):
+   a. Read the bundle (TOON). It contains: `description`, the full `upstream` list
       (each with a business `label`/`display_label` and a `direct` flag — `true`
       for immediate sources, `false` for deeper ancestors), the model `sql`,
       `semantic_models` (with dimension and measure labels), `metrics` (label,
@@ -83,11 +85,11 @@ parsing; you (Claude) write two prose sections per model.
       you may add one sentence on what business questions this model helps answer,
       naming the metrics by their label (e.g. "It powers the Total Lifetime Value
       and Customer Count metrics").
-   d. **Write** a sibling file next to the bundle, named by replacing the bundle's
-      `.json` with `.summary.json` (e.g.
+   d. **Write** a sibling `<model>.summary.json` next to the bundle, replacing the
+      bundle's `.toon` with `.summary.json` (e.g.
       `_bundles/analytics/dim_customers.summary.json`), containing exactly:
-      `{"lineage": "<b>", "transformation": "<c>"}`. Do **not** open or edit the
-      `.md` file — the next step does that.
+      `{"lineage": "<b>", "transformation": "<c>"}`. The summaries stay JSON. Do
+      **not** open or edit the `.md` file — the next step does that.
 
 4. **Inject.** Once every summary is written, run the script in injection mode to
    splice the prose into the `.md` files between the markers:

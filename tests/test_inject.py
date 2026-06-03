@@ -1,5 +1,7 @@
 import json
 
+import toons
+
 from dbt_docs_to_md.cli import write_outputs
 from dbt_docs_to_md.markdown import markers
 from dbt_docs_to_md.markdown.inject import inject_summaries, replace_between
@@ -18,9 +20,11 @@ def _write_summary(output, rel_stem, lineage=None, transformation=None):
 
 def test_bundle_is_slim_and_marks_direct(project, tmp_path):
     write_outputs(project, tmp_path)
-    bundle = json.loads(
-        (tmp_path / "_bundles" / "analytics" / "dim_customers.json").read_text()
-    )
+    raw = (tmp_path / "_bundles" / "analytics" / "dim_customers.toon").read_text()
+    # The bundle is TOON, not JSON: the uniform upstream array is encoded as a
+    # tabular block (one header declaring the fields, then comma-separated rows).
+    assert "upstream[" in raw and "{name,label,display_label,resource_type,direct}" in raw
+    bundle = toons.loads(raw)
     for dropped in ("parents", "placeholders", "target_md", "sql_source"):
         assert dropped not in bundle
     assert bundle["upstream"], "expected upstream entries"
