@@ -3,48 +3,38 @@
   "name": "dim_customers",
   "label": "Customers",
   "description": "One row per customer enriched with lifetime order totals.",
-  "parents": [
-    {
-      "name": "stg_customers",
-      "label": "Cleaned Customers",
-      "display_label": "Cleaned Customers",
-      "resource_type": "model"
-    },
-    {
-      "name": "stg_orders",
-      "label": "Cleaned Orders",
-      "display_label": "Cleaned Orders",
-      "resource_type": "model"
-    }
-  ],
+  "language": "en",
   "upstream": [
     {
       "name": "stg_customers",
       "label": "Cleaned Customers",
       "display_label": "Cleaned Customers",
-      "resource_type": "model"
+      "resource_type": "model",
+      "direct": true
     },
     {
       "name": "stg_orders",
       "label": "Cleaned Orders",
       "display_label": "Cleaned Orders",
-      "resource_type": "model"
+      "resource_type": "model",
+      "direct": true
     },
     {
       "name": "customers",
       "label": "Source Customers",
       "display_label": "Source Customers",
-      "resource_type": "source"
+      "resource_type": "source",
+      "direct": false
     },
     {
       "name": "orders",
       "label": "Source Orders",
       "display_label": "Source Orders",
-      "resource_type": "source"
+      "resource_type": "source",
+      "direct": false
     }
   ],
   "sql": "select c.customer_id, c.email, sum(o.amount) as lifetime_value, case when sum(o.amount) > 1000 then 'vip' else 'standard' end as status from \"warehouse\".\"analytics\".\"stg_customers\" c left join \"warehouse\".\"analytics\".\"stg_orders\" o on c.customer_id = o.customer_id group by 1, 2",
-  "sql_source": "compiled",
   "semantic_models": [
     {
       "name": "Customers",
@@ -69,16 +59,5 @@
       "type": "simple",
       "description": "The number of distinct customers."
     }
-  ],
-  "target_md": "analytics/dim_customers.md",
-  "placeholders": {
-    "lineage": {
-      "open": "<!-- LINEAGE_SUMMARY -->",
-      "close": "<!-- /LINEAGE_SUMMARY -->"
-    },
-    "transformations": {
-      "open": "<!-- TRANSFORMATION_SUMMARY -->",
-      "close": "<!-- /TRANSFORMATION_SUMMARY -->"
-    }
-  }
+  ]
 }

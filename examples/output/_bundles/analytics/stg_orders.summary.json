@@ -1,0 +1,4 @@
+{
+  "lineage": "Cleaned Orders is built directly from the raw Source Orders feed, which is loaded into the warehouse from the source system. It is the first, lightly cleaned layer on top of that raw order data.",
+  "transformation": "This model takes the raw order records and standardizes them, keeping each order's identifier, the customer who placed it, and the order amount ready for downstream use."
+}

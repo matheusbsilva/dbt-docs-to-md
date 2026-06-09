@@ -62,6 +62,6 @@ def test_write_outputs_creates_files(project, tmp_path):
     write_outputs(project, tmp_path)
     assert (tmp_path / "index.md").exists()
     assert (tmp_path / "analytics" / "dim_customers.md").exists()
-    bundles = list((tmp_path / "_bundles").rglob("*.json"))
+    bundles = list((tmp_path / "_bundles").rglob("*.toon"))
     assert len(bundles) == 3
-    assert (tmp_path / "_bundles" / "analytics" / "dim_customers.json").exists()
+    assert (tmp_path / "_bundles" / "analytics" / "dim_customers.toon").exists()

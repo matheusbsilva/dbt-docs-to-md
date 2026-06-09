@@ -2,48 +2,38 @@ from __future__ import annotations
 
 from .domain import ParsedModel, ParsedProject
 from .lineage import direct_parents, upstream_tree
-from .markdown import markers
 from .markdown.environment import DEFAULT_LANGUAGE
 
 
 def build_bundle(
     model: ParsedModel,
     project: ParsedProject,
-    target_md: str,
     language: str = DEFAULT_LANGUAGE,
 ) -> dict:
+    direct_ids = {r.unique_id for r in direct_parents(model.unique_id, project)}
     return {
         "unique_id": model.unique_id,
         "name": model.name,
         "label": model.label,
         "description": model.description,
         "language": language,
-        "parents": [_ref(r) for r in direct_parents(model.unique_id, project)],
-        "upstream": [_ref(r) for r in upstream_tree(model.unique_id, project)],
+        "upstream": [
+            _ref(r, direct=r.unique_id in direct_ids)
+            for r in upstream_tree(model.unique_id, project)
+        ],
         "sql": model.transformation_sql,
-        "sql_source": "compiled" if model.compiled_code else "raw",
         "semantic_models": [_semantic_model(sm) for sm in model.semantic_models],
         "metrics": [_metric(m) for m in model.metrics],
-        "target_md": target_md,
-        "placeholders": {
-            "lineage": {
-                "open": markers.LINEAGE_OPEN,
-                "close": markers.LINEAGE_CLOSE,
-            },
-            "transformations": {
-                "open": markers.TRANSFORMATION_OPEN,
-                "close": markers.TRANSFORMATION_CLOSE,
-            },
-        },
     }
 
 
-def _ref(ref) -> dict:
+def _ref(ref, direct: bool = False) -> dict:
     return {
         "name": ref.name,
         "label": ref.label,
         "display_label": ref.display_label,
         "resource_type": ref.resource_type,
+        "direct": direct,
     }
 
 

@@ -3,35 +3,17 @@
   "name": "stg_orders",
   "label": "Cleaned Orders",
   "description": "Cleaned order records.",
-  "parents": [
-    {
-      "name": "orders",
-      "label": "Source Orders",
-      "display_label": "Source Orders",
-      "resource_type": "source"
-    }
-  ],
+  "language": "en",
   "upstream": [
     {
       "name": "orders",
       "label": "Source Orders",
       "display_label": "Source Orders",
-      "resource_type": "source"
+      "resource_type": "source",
+      "direct": true
     }
   ],
   "sql": "select id as order_id, customer_id, amount from \"warehouse\".\"raw\".\"orders\"",
-  "sql_source": "compiled",
   "semantic_models": [],
-  "metrics": [],
-  "target_md": "analytics/stg_orders.md",
-  "placeholders": {
-    "lineage": {
-      "open": "<!-- LINEAGE_SUMMARY -->",
-      "close": "<!-- /LINEAGE_SUMMARY -->"
-    },
-    "transformations": {
-      "open": "<!-- TRANSFORMATION_SUMMARY -->",
-      "close": "<!-- /TRANSFORMATION_SUMMARY -->"
-    }
-  }
+  "metrics": []
 }
